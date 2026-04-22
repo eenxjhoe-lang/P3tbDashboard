@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DOPK — Dashboard Operasional Pelabuhan &amp; Kesyahbandaran</title>
+<link rel="icon" type="image/svg+xml" href="assets/icon/favicon.svg">
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Stylesheet -->
+<link rel="stylesheet" href="css/style.css">
+
+<!-- CDN Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DOPK — Dashboard Operasional Pelabuhan & Kesyahbandaran</title>
+<link rel="icon" type="image/svg+xml" href="assets/icon/favicon.svg">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+
+</head>
+<body>
+<div id="bg"><div class="w"></div><div class="w"></div><div class="w"></div></div>
+<div id="loader"><div class="l-ico">⚓</div><div class="l-txt" id="l-txt">Memuat...</div></div>
+<div id="toast"></div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-bg" id="edit-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-title">✏️ Edit Data Kunjungan</h3>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <!-- dynamic content -->
+    </div>
+    <div class="modal-foot">
+      <button class="btn-s bs-ghost" onclick="closeEditModal()">Batal</button>
+      <button class="btn-s bs-gold" onclick="saveEditedEntry()">💾 Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT INDIKATOR MODAL -->
+<div class="modal-bg" id="edit-ind-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>📈 Edit Data Indikator</h3>
+      <button class="modal-close" onclick="document.getElementById('edit-ind-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" id="ind-modal-body"></div>
+    <div class="modal-foot">
+      <button class="btn-s bs-ghost" onclick="document.getElementById('edit-ind-modal').classList.remove('open')">Batal</button>
+      <button class="btn-s bs-gold" onclick="saveIndikator()">💾 Simpan Indikator</button>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+<!-- ═══ LANDING ═══ -->
+<div id="landing">
+  <img src="../assets/img/logo-kkp.png" class="logo-icon" alt="KKP" style="width:88px;height:88px;object-fit:contain;animation:lp 3s ease-in-out infinite">
+  <div class="logo-title">DOPK</div>
+  <div class="logo-sub">Dashboard Operasional Pelabuhan &amp; Kesyahbandaran</div>
+  <p class="logo-tag">Pelabuhan Perikanan Pantai Teluk Batang · Multi-periode · Edit &amp; Sinkronisasi Data · Laporan 9 Sheet</p>
+  <div class="sto-wrap" id="sto-wrap" style="display:none">
+    <div class="sto-ttl">DATA TERSIMPAN — KLIK UNTUK BUKA</div>
+    <div class="mg" id="mg"></div>
+  </div>
+  <!-- Tombol muat dari Google Sheets (tampil jika URL tersimpan) -->
+  <div id="gs-landing-panel" style="display:none;width:100%;max-width:500px;margin-bottom:14px">
+    <div style="background:linear-gradient(135deg,rgba(15,157,88,.1),rgba(66,133,244,.08));border:1px solid rgba(15,157,88,.3);border-radius:var(--R2);padding:16px 20px;text-align:center">
+      <div style="font-size:22px;margin-bottom:6px">☁️</div>
+      <div style="font-family:'Cinzel',serif;font-size:13px;color:#0b7a5c;font-weight:600;margin-bottom:4px">Data Tersimpan di Google Sheets</div>
+      <div style="font-size:10.5px;color:#456789;margin-bottom:12px">Muat data langsung dari cloud tanpa perlu upload file Excel</div>
+      <button class="btn btn-primary" id="btn-load-sheets" onclick="landingLoadFromSheets()"
+        style="background:linear-gradient(135deg,#0f9d58,#0b7a5c);margin-top:0">
+        ☁️ Muat dari Google Sheets
+      </button>
+      <div id="gs-landing-status" style="margin-top:8px;font-size:10px;color:#456789;min-height:16px"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin:10px 0">
+      <div style="flex:1;height:1px;background:rgba(0,119,170,.2)"></div>
+      <span style="font-size:9.5px;color:#789aaa;font-weight:600">ATAU</span>
+      <div style="flex:1;height:1px;background:rgba(0,119,170,.2)"></div>
+    </div>
+  </div>
+
+  <div class="upcard" id="upcard">
+    <span class="up-ico">🚢</span>
+    <h2>Upload File Rekap atau Indikator</h2>
+    <p>Drag &amp; drop atau klik pilih file<br><em>Rekap_Januari.xlsx · Indikator_Maret.xlsx</em></p>
+    <button class="btn btn-primary" id="btn-up" type="button"><span>📂</span> Pilih File Excel</button>
+    <div class="up-hint">Mendukung .xlsx &amp; .xls · Multi-file · Tersimpan di browser</div>
+  </div>
+  <input type="file" id="fi" accept=".xlsx,.xls" multiple>
+  <div class="sh-out" id="sh-out">
+    <div style="color:var(--TL);font-size:10px;font-weight:600;margin-bottom:4px">🔗 Link Berbagi</div>
+    <div class="sh-url" id="sh-url"></div>
+    <div style="font-size:9.5px;color:var(--DM)">Salin link ini untuk membuka di perangkat lain.</div>
+  </div>
+</div>
+
+<!-- ═══ DASHBOARD ═══ -->
+<div id="dash">
+<div class="dash-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="../assets/img/logo-kkp.png" alt="KKP" style="width:54px;height:54px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(255,255,255,.3))">
+      <div class="sidebar-title">DOPK</div>
+      <div class="sidebar-sub">Operasional Pelabuhan &amp; Kesyahbandaran</div>
+    </div>
+    <div class="sidebar-menu">
+      <div class="sidebar-section">NAVIGASI</div>
+      <button class="smenu-item" onclick="G('sinkron',this)"><span class="smi">🔄</span><span>Sinkronisasi</span></button>
+      <button class="smenu-item" onclick="G('kelola',this)"><span class="smi">🗂</span><span>Kelola Data</span></button>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section">REKAP DATA</div>
+      <button class="smenu-item" onclick="G('kegiatan',this)"><span class="smi">📋</span><span>Kegiatan</span></button>
+      <button class="smenu-item" onclick="G('kapal',this)"><span class="smi">🚢</span><span>Kunjungan Kapal</span></button>
+      <button class="smenu-item" onclick="G('aktivitas',this)"><span class="smi">⚡</span><span>Aktivitas</span></button>
+      <button class="smenu-item" onclick="G('gt',this)"><span class="smi">⚓</span><span>GT Kapal</span></button>
+      <button class="smenu-item" onclick="G('ikan',this)"><span class="smi">🐟</span><span>Jenis Ikan</span></button>
+      <button class="smenu-item" onclick="G('logistik',this)"><span class="smi">⛽</span><span>Logistik</span></button>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section">LAPORAN</div>
+      <button class="smenu-item" onclick="G('ringkas',this)"><span class="smi">📊</span><span>Laporan Ringkas</span></button>
+      <button class="smenu-item" onclick="G('saran',this)"><span class="smi">💡</span><span>Saran</span></button>
+      <div class="smenu-divider" style="height:1px;background:rgba(0,119,170,.2);margin:6px 8px"></div>
+      <div class="smenu-label" style="font-size:8.5px;letter-spacing:1.5px;color:rgba(0,100,160,.55);padding:2px 14px 4px;font-weight:700;text-transform:uppercase">GOOGLE SHEETS</div>
+      <button class="smenu-item" onclick="G('gssync',this)"><span class="smi">☁️</span><span>Sinkronisasi</span></button>
+      <div class="smenu-label" style="font-size:8.5px;letter-spacing:1.5px;color:rgba(0,100,160,.55);padding:2px 14px 4px;font-weight:700;text-transform:uppercase">DATABASE</div>
+      <button class="smenu-item" onclick="G('dbkapal',this)"><span class="smi">🗃</span><span>Db Kapal</span></button>
+      <button class="smenu-item" onclick="G('dbikan',this)"><span class="smi">🐠</span><span>Db Ikan</span></button>
+      <button class="smenu-item" onclick="G('inputkapal',this)"><span class="smi">📝</span><span>Input Kapal</span></button>
+    </div>
+      </aside>
+
+  <!-- TOP BAR -->
+  <div class="main-content">
+  <div class="topbar">
+    <!-- Tab Navigasi Utama -->
+    <div class="topbar-tabs">
+      <button class="ttab active" id="ttab-utama" onclick="G('utama',this);setTTab('utama')">🏠 Utama</button>
+      <button class="ttab" id="ttab-indikator" onclick="G('indikator',this);setTTab('indikator')">📈 Indikator</button>
+    </div>
+    <!-- Pemisah -->
+    <div style="width:1px;height:26px;background:rgba(0,100,160,.15);flex-shrink:0"></div>
+    <!-- Pilih Periode -->
+    <div class="topbar-period">
+      <span style="font-size:8.5px;color:#456789;font-weight:700;letter-spacing:.8px;white-space:nowrap">PERIODE</span>
+      <select class="psel tp-sel" id="pFrom" onchange="applyRange()" title="Dari"
+        style="background:rgba(0,100,160,.08);border:1px solid rgba(0,100,160,.2);border-radius:6px;color:#004e7c;padding:3px 6px;font-size:10px;font-family:inherit;font-weight:600;cursor:pointer;outline:none"></select>
+      <span style="color:#456789;font-size:10px">—</span>
+      <select class="psel tp-sel" id="pTo" onchange="applyRange()" title="Sampai"
+        style="background:rgba(0,100,160,.08);border:1px solid rgba(0,100,160,.2);border-radius:6px;color:#004e7c;padding:3px 6px;font-size:10px;font-family:inherit;font-weight:600;cursor:pointer;outline:none"></select>
+    </div>
+    <!-- Pemisah -->
+    <div style="width:1px;height:26px;background:rgba(0,100,160,.15);flex-shrink:0"></div>
+    <!-- Nama & Status GS -->
+    <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">
+      <span style="font-family:'Cinzel',serif;font-size:10px;color:#004e7c;font-weight:600;white-space:nowrap">DOPK</span>
+      <div id="gs-dot-sb" class="gs-dot offline" style="flex-shrink:0"></div>
+      <span id="topbar-period" style="font-size:10px;color:#456789;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</span>
+    </div>
+    <div class="topbar-right">
+      <button class="btn-s" style="background:rgba(0,78,124,.08);color:#004e7c;border:1px solid rgba(0,100,160,.22);border-radius:7px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif" onclick="goLanding()">＋ Tambah</button>
+      <button class="btn-s bs-sky" onclick="shareData()">🔗 Bagikan</button>
+      <button class="btn-s bs-wave" id="btn-exp">⬇ Export Excel</button>
+      <button class="btn-s bs-red" onclick="if(confirm('Hapus data periode aktif?'))doDelActive()">🗑 Hapus</button>
+    </div>
+  </div>
+  <div class="cnt">
+    <!-- UTAMA -->
+    <div class="page active" id="page-utama">
+      <div class="ppill"><div class="pp-dot"></div><span id="pbd">—</span></div>
+      <div class="sec-h"><h2 id="dtitle">Dashboard</h2><p id="dsub"></p></div>
+      <div class="kr" id="kr-utama"></div>
+      <div class="cr">
+        <div class="cbox"><div class="clbl"><div class="cdot"></div>Kunjungan Harian</div><canvas id="cD"></canvas></div>
+        <div class="cbox"><div class="clbl"><div class="cdot"></div>Komposisi Armada</div><canvas id="cJ"></canvas></div>
+        <div class="cbox"><div class="clbl"><div class="cdot"></div>Top 5 Hasil Tangkap (Kg)</div><canvas id="cI5"></canvas></div>
+      </div>
+    </div>
+    <!-- INDIKATOR -->
+    <div class="page" id="page-indikator">
+      <div class="ppill"><div class="pp-dot"></div><span class="pbds">—</span></div>
+      <div class="sec-h"><h2>Indikator Kinerja</h2><p id="sub-ind"></p></div>
+      <div class="kr" id="kr-ind"></div>
+      <div class="cr"><div class="cbox" style="grid-column:1/-1"><div class="clbl"><div class="cdot"></div>Tren Produksi &amp; Distribusi (Kg)</div><canvas id="cIT" style="max-height:175px"></canvas></div></div>
+      <div class="cr">
+        <div class="cbox"><div class="clbl"><div class="cdot"></div>Nilai Produksi vs Distribusi (Rp Juta)</div><canvas id="cIV"></canvas></div>
+        <div class="cbox"><div class="clbl"><div class="cdot"></div>Dokumen Diterbitkan</div><canvas id="cID"></canvas></div>
+      </div>
+      <div class="tbox">
+        <div class="th"><h3>Tabel Indikator</h3>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span class="tbadge" id="cnt-ind">0</span>
+            <button class="btn-s bs-gold" onclick="openEditInd()">✏️ Edit Indikator</button>
+          </div>
+        </div>
+        <div class="tw"><table id="tbl-ind"></table></div>
+      </div>
+    </div>
+    <!-- SINKRONISASI -->
+    <div class="page" id="page-sinkron">
+      <div class="ppill"><div class="pp-dot"></div><span class="pbds">—</span></div>
+      <div class="sec-h"><h2>🔄 Sinkronisasi &amp; Validasi Data</h2><p>Bandingkan data rekap dengan indikator, deteksi perbedaan, dan perbaiki langsung</p></div>
+      <div id="sync-content"></div>
+    </div>
+    <!-- KEGIATAN -->
+    <div class="page" id="page-kegiatan">
+      <div class="ppill"><div class="pp-dot"></div><span class="pbds">—</span></div>
+      <div class="sec-h"><h2>Rekap Kegiatan</h2><p id="sub-keg"></p></div>
+      <div class="kr" id="kr-keg"></div>
+      <div class="tbox"><div class="th"><h3>Daftar Kegiatan</h3><span class="tbadge" id="cnt-keg">0</span></div><div class="tw"><table id="tbl-keg"></table></div></div>
+    </div>
+    <!-- KUNJUNGAN -->
+    <div class="page" id="page-kapal">
+      <div class="ppill"><div class="pp-dot"></div><span class="pbds">—</span></div>
+      <div class="sec-h"><h2>Rekap Kunjungan Kapal</h2><p id="sub-kap"></p></div>
+      <div class="tbox"><div class="th"><h3>Data Kunjungan</h3><span class="tbadge" id="cnt-kap">0</span></div><div class="tw"><table id="tbl-kap"></table></div></div>
+    </div>
+    <!-- AKTIVITAS -->
+    <div class="page" id="page-aktivitas">
+      <div class="ppill"><div class="pp-dot"></div><span class="pbds">—</span></div>
+      <div class="sec-h"><h2>Rekap Aktivitas</h2><p id="sub-akt"></p></div>
+      <div class="cr"><div class="cbox" style="grid-column:1/-1"><div class="clbl"><div class="cdot"></div>Nilai Produksi per Tanggal</div><canvas id="cN" style="max-height:175px"></canvas></div></div>
+      <div class="tbox"><div class="th"><h3>Aktivitas per Kapal</h3><span class="tbadge" id="cnt-akt">0</span></div><div class="tw"><table id="tbl-akt"></table></div></div>
+    </div>
+    <!-- GT -->
+    <div class="page" id="page-gt">
+      <div class="ppill"><div class="pp-dot"></div><span class="pbds">—</span></div>
+      <div class="sec-h"><h2>Rekap GT Kapal</h2><p id="sub-gt"></p></div>
+      <div class="kr" id="kr-gt"></div>
+      <div class="cr">
+        <div class="cbox"><div class="clbl"><div class="cdot"></div>Distribusi Kategori GT</div><canvas id="cGT"></canvas></div>
+        <div class="cbox"><div class="clbl"><div class="cdot"></div>Jumlah Kapal per Jenis</div><canvas id="cGJ"></canvas></div>
+      </div>
+      <div class="tbox"><div class="th"><h3>Detail GT</h3><span class="tbadge" id="cnt-gt">0</span></div><div class="tw"><table id="tbl-gt"></table></div></div>
+    </div>
+    <!-- IKAN -->
+    <div class="page" id="page-ikan">
+      <div class="ppill"><div class="pp-dot"></div><span class="pbds">—</span></div>
+      <div class="sec-h"><h2>Rekap Jenis Ikan</h2><p id="sub-ikn"></p></div>
+      <div class="cr"><div class="cbox" style="grid-column:1/-1"><div class="clbl"><div class="cdot"></div>Produksi per Jenis (Kg)</div><canvas id="cIK" style="max-height:200px"></canvas></div></div>
+      <div class="tbox"><div class="th"><h3>Detail Produksi Ikan</h3><span class="tbadge" id="cnt-ikn">0</span></div><div class="tw"><table id="tbl-ikn"></table></div></div>
+    </div>
+    <!-- LOGISTIK -->
+    <div class="page" id="page-logistik">
+      <div class="ppill"><div class="pp-dot"></div><span class="pbds">—</span></div>
+      <div class="sec-h"><h2>Logistik &amp; Perbekalan</h2><p id="sub-log"></p></div>
+      <div class="kr" id="kr-log"></div>
+      <div class="cr"><div class="cbox" style="grid-column:1/-1"><div class="clbl"><div class="cdot"></div>Total Perbekalan</div><canvas id="cLG" style="max-height:175px"></canvas></div></div>
+      <div class="tbox"><div class="th"><h3>Detail Logistik</h3><span class="tbadge" id="cnt-log">0</span></div><div class="tw"><table id="tbl-log"></table></div></div>
+    </div>
+    <!-- RINGKAS -->
+    <div class="page" id="page-ringkas">
+      <div class="ppill"><div class="pp-dot"></div><span class="pbds">—</span></div>
+      <div class="sec-h"><h2>Laporan Ringkas</h2><p id="sub-rng"></p></div>
+      <div class="rg" id="rep-grid"></div>
+      <div class="cr"><div class="cbox" style="grid-column:1/-1"><div class="clbl"><div class="cdot"></div>Tren Produksi &amp; Nilai</div><canvas id="cTR" style="max-height:175px"></canvas></div></div>
+      <div class="cbox"><div class="clbl"><div class="cdot"></div>Perbandingan Bulanan</div><canvas id="cMN" style="max-height:175px"></canvas></div>
+    </div>
+    <!-- SARAN -->
+    <div class="page" id="page-saran">
+      <div class="sec-h"><h2>💡 Saran Pengembangan</h2><p>Rekomendasi fitur untuk meningkatkan DOPK Dashboard</p></div>
+      <div class="sg-grid" id="sg-grid"></div>
+    </div>
+
+    <!-- KELOLA DATA -->
+    <div class="page" id="page-kelola">
+      <div class="sec-h"><h2>🗂 Kelola Data</h2><p>Tambah file baru, kelola data per bulan, dan hapus data Indikator</p></div>
+
+      <!-- SECTION: TAMBAH FILE BARU -->
+      <div class="ksec-card" id="kelola-upload-section">
+        <div class="ksec-head">
+          <div class="ksec-icon">📂</div>
+          <div>
+            <div class="ksec-title">Tambah File Rekap atau Indikator</div>
+            <div class="ksec-sub">Upload file Excel untuk menambahkan data bulan baru atau update data yang sudah ada</div>
+          </div>
+        </div>
+        <div class="kelola-drop" id="kelola-drop-zone">
+          <span style="font-size:36px;display:block;margin-bottom:8px">🚢</span>
+          <div style="font-size:13px;font-weight:600;color:#004e7c;margin-bottom:4px">Drop File di Sini atau Klik Pilih</div>
+          <div style="font-size:11px;color:#456789">Rekap_Januari.xlsx · Rekap_Februari.xlsx · Indikator_Maret.xlsx</div>
+          <button class="btn btn-primary" id="btn-kelola-up" type="button" style="margin-top:12px;font-size:12px;padding:8px 20px">📂 Pilih File Excel</button>
+          <input type="file" id="fi-kelola" accept=".xlsx,.xls" multiple style="display:none">
+        </div>
+        <div id="kelola-upload-log" style="display:none;margin-top:10px"></div>
+      </div>
+
+      <!-- SECTION: DATA REKAP TERSIMPAN -->
+      <div class="ksec-card" style="margin-top:14px">
+        <div class="ksec-head">
+          <div class="ksec-icon">📅</div>
+          <div>
+            <div class="ksec-title">Data Rekap per Bulan</div>
+            <div class="ksec-sub">Kelola data kunjungan kapal yang tersimpan di browser</div>
+          </div>
+          <button class="btn-s bs-wave" onclick="refreshKelolaList()" style="margin-left:auto">↺ Refresh</button>
+        </div>
+        <div id="kelola-rekap-list" style="margin-top:10px"></div>
+      </div>
+
+      <!-- SECTION: DATA INDIKATOR -->
+      <div class="ksec-card" style="margin-top:14px" id="kelola-ind-section">
+        <div class="ksec-head">
+          <div class="ksec-icon">📈</div>
+          <div>
+            <div class="ksec-title">Data Indikator Kinerja</div>
+            <div class="ksec-sub">Kelola data indikator operasional pelabuhan</div>
+          </div>
+        </div>
+        <div id="kelola-ind-list" style="margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+
+    <!-- GOOGLE SHEETS SYNC -->
+    <div class="page" id="page-gssync">
+      <div class="ppill"><div class="pp-dot"></div><span>Integrasi Cloud</span></div>
+      <div class="sec-h">
+        <h2>☁️ Sinkronisasi Google Sheets</h2>
+        <p>Hubungkan dashboard ke Google Sheets agar data tersimpan terpusat & bisa diakses semua petugas</p>
+      </div>
+
+      <!-- STATUS PANEL -->
+      <div id="gs-status-panel" class="gs-panel warn">
+        <div class="gs-row">
+          <div id="gs-main-dot" class="gs-dot offline"></div>
+          <div>
+            <div class="gs-label" id="gs-main-label">Belum Terhubung ke Google Sheets</div>
+            <div class="gs-sub" id="gs-main-sub">Masukkan URL Apps Script untuk memulai sinkronisasi</div>
+          </div>
+          <span id="gs-sync-badge" class="sync-badge sb-local">💾 Data Lokal</span>
+        </div>
+      </div>
+
+      <!-- PENGATURAN URL -->
+      <div class="tbox" style="padding:16px;margin-bottom:14px">
+        <div class="clbl" style="margin-bottom:12px"><div class="cdot"></div>Pengaturan Koneksi Apps Script</div>
+        <div style="margin-bottom:10px">
+          <label class="flbl">URL Google Apps Script Web App</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="gs-url-input" type="text" class="gs-url-input"
+              placeholder="https://script.google.com/macros/s/XXXX/exec"
+              oninput="gsUrlChanged()">
+            <button class="btn-s bs-wave" onclick="gsPing()" style="white-space:nowrap">🔌 Tes Koneksi</button>
+            <button class="btn-s bs-ghost" onclick="gsSaveUrl()" style="white-space:nowrap">💾 Simpan</button>
+          </div>
+          <div style="margin-top:6px;font-size:9.5px;color:#456789">
+            💡 URL harus diakhiri <code style="background:rgba(0,119,170,.1);padding:1px 5px;border-radius:3px;font-size:9px">/exec</code> — bukan <code>/dev</code>
+          </div>
+          <div id="gs-diag-url" style="display:none;margin-top:8px">
+            <a id="gs-open-url" href="#" target="_blank" class="btn-s bs-ghost" style="font-size:9.5px;text-decoration:none;display:inline-flex;align-items:center;gap:4px">
+              🔗 Buka URL di tab baru (cek respons JSON)
+            </a>
+            <span style="font-size:9px;color:#456789;margin-left:8px">Harus tampil teks JSON, bukan halaman login</span>
+          </div>
+        </div>
+        <div id="gs-ping-result" style="display:none;margin-top:8px;padding:8px 12px;border-radius:7px;font-size:10.5px"></div>
+      </div>
+
+      <!-- TROUBLESHOOT PANEL -->
+      <div id="gs-troubleshoot" style="display:none;background:rgba(234,67,53,.05);border:1px solid rgba(234,67,53,.2);border-radius:var(--R);padding:14px 16px;margin-bottom:14px">
+        <div style="font-family:'Cinzel',serif;font-size:11px;color:#c0392b;margin-bottom:10px;font-weight:600">🔧 Panduan Mengatasi Gagal Koneksi</div>
+        <div style="display:grid;gap:8px;font-size:10.5px">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="background:#c0392b;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">1</span>
+            <div><strong style="color:#8b1a1a">Cek URL</strong> — Pastikan URL diakhiri <code style="background:rgba(0,0,0,.08);padding:1px 5px;border-radius:3px">/exec</code>. Kalau berakhiran <code>/dev</code>, ganti ke <code>/exec</code></div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="background:#c0392b;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">2</span>
+            <div><strong style="color:#8b1a1a">Cek Akses</strong> — Di Apps Script → Deploy → Kelola Deployment → Edit → pastikan <strong>"Siapa yang punya akses: Semua orang"</strong> (bukan "Semua orang yang memiliki akun Google")</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="background:#c0392b;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">3</span>
+            <div><strong style="color:#8b1a1a">Deploy Ulang</strong> — Setelah ganti kode, wajib deploy ulang dengan <strong>Versi Baru</strong>. Deploy lama tidak akan update kode</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="background:#c0392b;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">4</span>
+            <div><strong style="color:#8b1a1a">Tes Manual</strong> — Klik tombol "Buka URL di tab baru" di atas. Harus tampil teks JSON seperti <code>{"status":"ok",...}</code>. Kalau muncul halaman login Google → akses masih terbatas</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="background:#c0392b;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">5</span>
+            <div><strong style="color:#8b1a1a">Izin Google</strong> — Saat pertama deploy, harus klik <strong>"Tinjau izin" → "Izinkan"</strong>. Kalau dilewati, Apps Script tidak akan jalan</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANDUAN CARA PAKAI -->
+      <div class="tbox" style="padding:16px;margin-bottom:14px">
+        <div class="clbl" style="margin-bottom:12px"><div class="cdot"></div>Panduan Cara Menghubungkan (5 Langkah)</div>
+        <div style="display:grid;gap:10px">
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="width:26px;height:26px;border-radius:50%;background:var(--T);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">1</div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:#004e7c">Buka Google Apps Script</div>
+              <div style="font-size:10px;color:#456789;margin-top:2px">Kunjungi <a href="https://script.google.com" target="_blank" style="color:var(--T)">script.google.com</a> → Klik <strong>"Proyek Baru"</strong></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="width:26px;height:26px;border-radius:50%;background:var(--T);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">2</div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:#004e7c">Paste Kode Apps Script</div>
+              <div style="font-size:10px;color:#456789;margin-top:2px">Hapus kode default → Paste isi file <strong>DOPK_AppsScript_Code.gs</strong> → Ubah email di bagian CONFIG</div>
+              <button class="btn-s bs-ghost" style="margin-top:6px;font-size:9.5px" onclick="unduhPanduanGs()">📥 Download File .gs</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="width:26px;height:26px;border-radius:50%;background:var(--T);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">3</div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:#004e7c">Jalankan fungsi cekSetup</div>
+              <div style="font-size:10px;color:#456789;margin-top:2px">Pilih fungsi <strong>cekSetup</strong> → Klik Run → Izinkan akses Google → Spreadsheet otomatis dibuat</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="width:26px;height:26px;border-radius:50%;background:var(--T);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">4</div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:#004e7c">Deploy sebagai Web App</div>
+              <div style="font-size:10px;color:#456789;margin-top:2px">Klik <strong>Deploy → Deployment baru</strong> → Tipe: <em>Web App</em> → Akses: <em>Semua orang</em> → Deploy → Copy URL</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="width:26px;height:26px;border-radius:50%;background:#0f9d58;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">5</div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:#004e7c">Paste URL di atas → Tes Koneksi → Simpan</div>
+              <div style="font-size:10px;color:#456789;margin-top:2px">Setelah tersambung, semua data otomatis tersinkron ke Google Sheets 🎉</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AKSI SINKRONISASI -->
+      <div class="tbox" style="padding:16px;margin-bottom:14px" id="gs-action-panel">
+        <div class="clbl" style="margin-bottom:12px"><div class="cdot"></div>Aksi Sinkronisasi</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:#f0f9f4;border:1px solid rgba(15,157,88,.2);border-radius:9px;padding:12px">
+            <div style="font-size:11px;font-weight:600;color:#0f9d58;margin-bottom:4px">☁️ Ambil dari Sheets</div>
+            <div style="font-size:10px;color:#456789;margin-bottom:8px">Download semua data dari Google Sheets ke dashboard ini</div>
+            <button class="btn-s bs-green" style="width:100%" onclick="gsPullData()">☁️ Pull dari Sheets</button>
+          </div>
+          <div style="background:#f0f6ff;border:1px solid rgba(0,119,170,.2);border-radius:9px;padding:12px">
+            <div style="font-size:11px;font-weight:600;color:#0077aa;margin-bottom:4px">⬆️ Kirim ke Sheets</div>
+            <div style="font-size:10px;color:#456789;margin-bottom:8px">Upload semua data lokal yang belum tersimpan ke Google Sheets</div>
+            <button class="btn-s bs-wave" style="width:100%" onclick="gsPushAllData()">⬆️ Push ke Sheets</button>
+          </div>
+        </div>
+        <div id="gs-action-log" style="margin-top:10px;font-size:10px;color:#456789;min-height:30px;padding:8px;background:rgba(0,0,0,.03);border-radius:6px;display:none"></div>
+      </div>
+
+      <!-- STATUS SINKRONISASI -->
+      <div class="tbox" style="padding:16px" id="gs-log-panel">
+        <div class="clbl" style="margin-bottom:10px"><div class="cdot"></div>Log Sinkronisasi Terakhir</div>
+        <div id="gs-log-list" style="font-size:10px;color:#456789">Belum ada aktivitas sinkronisasi</div>
+      </div>
+    </div>
+
+    <!-- DATABASE KAPAL -->
+    <div class="page" id="page-dbkapal">
+      <div class="ppill"><div class="pp-dot"></div><span>Database Resmi</span></div>
+      <div class="sec-h"><h2>🗃 Database Kapal Terdaftar</h2><p>60 kapal tercatat di Pelabuhan Perikanan Pantai Teluk Batang</p></div>
+      <div class="tbox">
+        <div class="th">
+          <h3>Daftar Kapal</h3>
+          <span class="tbadge" id="cnt-dbkap">60</span>
+          <input id="srch-kapal" type="text" placeholder="🔍 Cari nama kapal / nakhoda / selar..." oninput="filterDbKapal(this.value)"
+            style="flex:1;max-width:360px;padding:5px 11px;border-radius:7px;border:1px solid rgba(0,119,170,.3);background:rgba(255,255,255,.9);font-size:11px;color:#003a5c;outline:none;font-family:inherit">
+        </div>
+        <div class="tw"><table id="tbl-dbkap">
+          <thead><tr><th>#</th><th>Nama Kapal</th><th>Nakhoda</th><th>Perusahaan</th><th>Tanda Selar</th><th>GT</th><th>Alat Tangkap</th><th>Mesin</th><th>Alamat</th></tr></thead>
+          <tbody id="tbody-dbkap"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- DATABASE IKAN -->
+    <div class="page" id="page-dbikan">
+      <div class="ppill"><div class="pp-dot"></div><span>Referensi Harga</span></div>
+      <div class="sec-h"><h2>🐠 Database Jenis Ikan & Harga</h2><p>45 jenis ikan dengan harga acuan di Pelabuhan Teluk Batang</p></div>
+      <div class="tbox">
+        <div class="th">
+          <h3>Daftar Ikan</h3>
+          <span class="tbadge" id="cnt-dbikan">45</span>
+          <input id="srch-ikan" type="text" placeholder="🔍 Cari jenis ikan..." oninput="filterDbIkan(this.value)"
+            style="flex:1;max-width:320px;padding:5px 11px;border-radius:7px;border:1px solid rgba(0,119,170,.3);background:rgba(255,255,255,.9);font-size:11px;color:#003a5c;outline:none;font-family:inherit">
+        </div>
+        <div class="tw"><table id="tbl-dbikan">
+          <thead><tr><th>#</th><th>Jenis Ikan</th><th>Harga (Rp/Kg)</th></tr></thead>
+          <tbody id="tbody-dbikan"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- FORM INPUT KAPAL -->
+    <div class="page" id="page-inputkapal">
+      <div class="ppill"><div class="pp-dot"></div><span>Entry Data</span></div>
+      <div class="sec-h"><h2>📝 Input Data Kunjungan Kapal</h2><p>Tambah data kunjungan kapal secara manual untuk periode aktif</p></div>
+      <div id="form-period-warn" style="display:none;background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.4);border-radius:9px;padding:10px 14px;margin-bottom:12px;font-size:11px;color:#9b5800">
+        ⚠️ Belum ada data periode aktif. Silakan upload file Excel terlebih dahulu atau buat entri awal dari Kelola Data.
+      </div>
+      <div id="form-period-info" style="background:rgba(0,119,170,.07);border:1px solid rgba(0,119,170,.25);border-radius:9px;padding:8px 14px;margin-bottom:14px;font-size:11px;color:#004e7c;display:flex;align-items:center;gap:8px">
+        <span>📅 Periode aktif:</span><strong id="form-aktif-label">—</strong>
+        <span style="margin-left:auto;color:#0077aa;font-size:10px" id="form-vessel-count">—</span>
+      </div>
+
+      <!-- GRID FORM -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+
+        <!-- KOLOM KIRI: Data Kapal -->
+        <div class="tbox" style="padding:14px">
+          <div class="clbl" style="margin-bottom:12px"><div class="cdot"></div>Data Kapal (Auto-Isi dari Database)</div>
+          <div style="margin-bottom:8px">
+            <label class="flbl">Nama Kapal <span style="color:#c0392b">*</span></label>
+            <div style="position:relative">
+              <input id="fi-nama-kapal" type="text" placeholder="Ketik nama kapal..." autocomplete="off"
+                oninput="kapalAutoComplete(this.value)" onkeydown="kapalNavKey(event)"
+                style="width:100%;padding:7px 11px;border-radius:7px;border:1px solid rgba(0,119,170,.3);background:#fff;font-size:11px;font-family:inherit;outline:none;color:#003a5c">
+              <div id="kapal-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:99;background:#fff;border:1px solid rgba(0,119,170,.3);border-radius:0 0 8px 8px;max-height:180px;overflow-y:auto;box-shadow:0 6px 18px rgba(0,80,140,.15)"></div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div><label class="flbl">Nakhoda</label><input id="fi-nakhoda" type="text" class="finput finput-ro" readonly placeholder="— auto isi —"></div>
+            <div><label class="flbl">Perusahaan</label><input id="fi-perusahaan" type="text" class="finput finput-ro" readonly placeholder="— auto isi —"></div>
+            <div><label class="flbl">Tanda Selar</label><input id="fi-selar" type="text" class="finput finput-ro" readonly placeholder="— auto isi —"></div>
+            <div><label class="flbl">GT</label><input id="fi-gt" type="text" class="finput finput-ro" readonly placeholder="— auto isi —"></div>
+            <div style="grid-column:1/-1"><label class="flbl">Alat Tangkap</label><input id="fi-alat" type="text" class="finput finput-ro" readonly placeholder="— auto isi —"></div>
+            <div style="grid-column:1/-1"><label class="flbl">Mesin</label><input id="fi-mesin" type="text" class="finput finput-ro" readonly placeholder="— auto isi —"></div>
+          </div>
+          <div style="margin-top:8px">
+            <label class="flbl">No. STBLKK <span style="color:#c0392b">*</span> <span style="color:#456789;font-size:9px">(isi manual)</span></label>
+            <input id="fi-stblkk" type="text" class="finput" placeholder="Contoh: STBLKK/001/I/2025" style="width:100%">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+            <div><label class="flbl">Tgl Tiba <span style="color:#c0392b">*</span></label><input id="fi-tiba" type="date" class="finput"></div>
+            <div><label class="flbl">Tgl Berangkat</label><input id="fi-berangkat" type="date" class="finput"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+            <div><label class="flbl">ABK</label><input id="fi-abk" type="number" class="finput" min="0" placeholder="0"></div>
+            <div><label class="flbl">Kegiatan</label>
+              <select id="fi-kegiatan" class="finput">
+                <option value="BONGKAR">BONGKAR</option>
+                <option value="BONGKAR MUAT">BONGKAR MUAT</option>
+                <option value="MUAT">MUAT</option>
+                <option value="SINGGAH">SINGGAH</option>
+              </select>
+            </div>
+            <div style="grid-column:1/-1"><label class="flbl">Tujuan / Daerah Tangkap</label><input id="fi-tujuan" type="text" class="finput" placeholder="Contoh: Laut Jawa, PP Tanjung Satai..."></div>
+          </div>
+        </div>
+
+        <!-- KOLOM KANAN: Data Produksi Ikan -->
+        <div class="tbox" style="padding:14px">
+          <div class="clbl" style="margin-bottom:12px"><div class="cdot"></div>Data Produksi Ikan</div>
+          <div id="fish-rows-wrap"></div>
+          <button class="btn-s bs-ghost" style="width:100%;margin-top:8px;font-size:11px" onclick="addFishInputRow()">＋ Tambah Jenis Ikan</button>
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(0,119,170,.12)">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#004e7c;margin-bottom:4px">
+              <span>Total Berat:</span><strong id="fi-total-kg">0 Kg</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#004e7c">
+              <span>Total Nilai:</span><strong id="fi-total-rp">Rp 0</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBMIT -->
+      <div style="display:flex;gap:9px;align-items:center">
+        <button class="btn-s bs-wave" style="padding:9px 28px;font-size:12px" onclick="submitInputKapal()">✅ Simpan Data Kapal</button>
+        <button class="btn-s bs-ghost" onclick="resetFormInput()">↺ Reset Form</button>
+        <span id="fi-status" style="font-size:11px;color:#27ae60;font-weight:600"></span>
+      </div>
+
+      <!-- LOG ENTRI -->
+      <div class="tbox" style="margin-top:14px">
+        <div class="th"><h3>Log Entri Manual Sesi Ini</h3><span class="tbadge" id="cnt-log-entry">0</span></div>
+        <div class="tw"><table id="tbl-log-entry">
+          <thead><tr><th>#</th><th>Nama Kapal</th><th>No.STBLKK</th><th>Nakhoda</th><th>Tgl Tiba</th><th>Ikan (jenis)</th><th>Total Kg</th><th>Hapus</th></tr></thead>
+          <tbody id="tbody-log-entry"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    </div><!-- .main-content -->
+</div><!-- .dash-layout -->
+</div><!-- #dash -->
+
+<!-- JavaScript — urutan loading penting -->
+<script src="js/utils.js"></script>
+<script src="js/app.js"></script>
+<script src="js/chart.js"></script>
+<script src="js/gsync.js"></script>
+</body>
+</html>
