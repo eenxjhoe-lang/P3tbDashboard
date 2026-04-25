@@ -191,7 +191,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f7ff;color:#0a1f2e
 .gt-pills{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
 .gtp{background:rgba(29,224,176,.09);border:1px solid rgba(29,224,176,.2);border-radius:50px;
   padding:1.5px 7px;font-size:8.5px;font-weight:600;color:var(--TL)}
-.gtp b{color:#fff}
+.gtp b{color:#100680}
 
 /* Charts */
 .cr{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:11px;margin-bottom:14px}
