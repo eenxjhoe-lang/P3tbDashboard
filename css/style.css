@@ -405,15 +405,87 @@ tr:hover td{background:#f0f8ff}
 .sp-row{margin-bottom:5px}
 .sidebar-period .psel{font-size:10px;color:#fff;padding:5px 7px;background:rgba(255,255,255,.12);
   border:1px solid rgba(255,255,255,.22);border-radius:6px;width:100%;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;outline:none}
-.topbar{
-  height:46px;
-  background:linear-gradient(90deg,#f0f7ff 0%,#e8f4fc 100%);
-  border-bottom:2px solid rgba(0,100,160,.12);
-  padding:0 14px 0 14px;display:flex;align-items:center;gap:10px;
-  position:sticky;top:0;z-index:99;
-  box-shadow:0 2px 8px rgba(0,50,100,.07);
-  margin-left:210px;
+.topbar {
+  height: 46px;
+  background: linear-gradient(90deg, #aedbe1 0%, #99cdeb 100%);
+  border-bottom: 2px solid rgba(0, 100, 160, 0.12);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 50, 100, 0.08);
+  
+  /* Perubahan penting agar nempel ke sidebar */
+  margin-left: 0;           /* dihapus */
+  width: 100%;              /* full width dari layar */
+  left: 210px;              /* geser mulai dari lebar sidebar */
+  right: 0;                 /* sampai ke ujung kanan */
 }
+
+/* ================== WARNA TOMBOL DI TOPBAR ================== */
+
+.topbar button,
+.topbar .btn,
+.topbar .btn-s,
+.topbar .btn-small {
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+/* Hover effect untuk semua tombol di topbar */
+.topbar button:hover,
+.topbar .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* Ubah warna tombol satu per satu sesuai urutan di HTML kamu */
+
+.topbar button:nth-child(1) {      /* Tombol pertama (biasanya "Utama") */
+  background: #4a8dde!important;
+  color: #0a2a5e !important;
+}
+
+.topbar button:nth-child(2) {      /* Tombol kedua (biasanya "Indikator") */
+  background: #4a8dde !important;
+  color: #0a2a5e !important;
+}
+
+.topbar button:nth-child(3),
+.topbar button:nth-child(4) {      /* Tombol periode / dropdown */
+  background: #4a8dde !important;
+  color: #1e2937 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.topbar button:nth-child(5) {      /* Tombol + Tambah */
+  background: #4a8dde !important;
+  color: white !important;
+}
+
+.topbar button:nth-child(6) {      /* Tombol Bagikan */
+  background: #f59e0b !important;
+  color: white !important;
+}
+
+.topbar button:nth-child(7) {      /* Tombol Export Excel */
+  background: #4a8dde !important;
+  color: white !important;
+}
+
+.topbar button:last-child {        /* Tombol terakhir (biasanya Hapus) */
+  background: #ef4444 !important;
+  color: white !important;
+}
+
 .topbar-tabs{display:flex;gap:3px;flex-shrink:0}
 .ttab{padding:5px 12px;border-radius:6px;border:none;font-size:10.5px;font-weight:600;
   cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;
@@ -435,4 +507,40 @@ tr:hover td{background:#f0f8ff}
   .form-grid{grid-template-columns:1fr}
   .form-grid.cols3{grid-template-columns:1fr 1fr}
   .topbar-title{font-size:11px}
+}
+/* ================== FOOTER ================== */
+
+.footer {
+  background: #003d6b;           /* warna gelap sesuai sidebar */
+  color: #ffffff;
+  text-align: center;
+  padding: 14px 20px;
+  font-size: 10.5px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin-left: 210px;            /* sama seperti topbar & main-content */
+  width: calc(100% - 210px);
+  z-index: 50;
+}
+
+/* Kalau ingin footer selalu di bawah (sticky footer) */
+.dash-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 45px);   /* kurangi tinggi topbar */
+}
+
+.main-content {
+  flex: 1;                          /* ini yang bikin konten mengisi ruang */
+  margin-left: 210px;
+  background: #f0f7ff;
+  padding-bottom: 20px;             /* jarak sebelum footer */
+}
+
+/* Responsive (untuk layar kecil) */
+@media (max-width: 900px) {
+  .footer,
+  .main-content {
+    margin-left: 56px;
+    width: calc(100% - 56px);
+  }
 }
